@@ -24,7 +24,7 @@ void printpid(int times)
 {
     int i = 0;
 
-    enable();
+    //enable();
     for (i = 0; i < times; i++)
     {
         kprintf("This is process %d\r\n", currpid);
@@ -47,6 +47,7 @@ void testcases(void)
     // TODO: Test your operating system!
 
     c = kgetc();
+    kprintf("%c", c);
     switch (c)
     {
     case '0':
