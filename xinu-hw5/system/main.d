@@ -5,7 +5,7 @@
  ../include/memory.h ../include/tlb.h ../include/compiler.h \
  ../include/stdio.h ../include/string.h ../include/ctype.h \
  ../include/platform.h ../include/bcm2835.h ../include/pl011.h \
- ../include/version.h
+ ../include/version.h ../include/clock.h
 
 ../include/xinu.h:
 
@@ -46,3 +46,5 @@
 ../include/pl011.h:
 
 ../include/version.h:
+
+../include/clock.h:

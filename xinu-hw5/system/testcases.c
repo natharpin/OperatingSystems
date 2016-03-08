@@ -25,6 +25,7 @@ void aginginf(void)
 	kprintf("%c", message[(i % 15)]);
 	resched();
     }
+    kprintf("The infinite loop is no longer infinite.");
 }
 
 void agingproof(void)
@@ -32,6 +33,30 @@ void agingproof(void)
     kprintf("\r\nThe operating system uses aging\r\n");
     agingtest = 0;
     resched();
+}
+
+void preemptcounting(void)
+{
+    enable();
+    int i;
+    for(i = 1; i < 11; i++)
+    {
+	kprintf("Process %d count: %d\r\n", currpid, i);
+    }
+}
+
+void printqueuetab(void)
+{
+    pid_typ printingproc = queuehead(readylist);
+    while((printingproc = queuetab[printingproc].next) != queuetail(readylist))
+    {
+	kprintf("Process %d with effective key of %d\r\n", printingproc, queuetab[printingproc].key);
+    }
+}
+
+void donothing(void)
+{
+   //Do nothing!
 }
 
 void bigargs(int a, int b, int c, int d, int e, int f)
@@ -44,7 +69,7 @@ void printpid(int times)
 {
     int i = 0;
 
-    //enable();
+    enable();
     for (i = 0; i < times; i++)
     {
         kprintf("This is process %d\r\n", currpid);
@@ -62,8 +87,9 @@ void testcases(void)
     kprintf("===TEST BEGIN===\r\n");
 
     kprintf("0) Test priority scheduling\r\n");
-    kprintf("1) Test aging -- if on it will loop forever, otherwise the second process will get the chance to run at a certain point\r\n");
-    kprintf("2) Test something I guess?\r\n");
+    kprintf("1) Test the queue order using priority scheduling\r\n");
+    kprintf("A) Test aging -- if TRUE it will loop forever, otherwise the second process will get the chance to run at a certain point and will stop the loop\r\n");
+    kprintf("P) Test preemption -- if enabled, each loop will not complete in one go, otherwise each loop will finish and the next loop will run\r\n");
     kprintf("3) Test some spec, eventually\r\n");
 
 
@@ -85,8 +111,23 @@ void testcases(void)
         break;
 
     case '1':
+	ready(create((void *)donothing, INITSTK, 1, "PRIORITY-A", 0), 0);
+	ready(create((void *)donothing, INITSTK, 3, "PRIORITY-B", 0), 0);
+	ready(create((void *)donothing, INITSTK, 3, "PRIORITY-C", 0), 0);
+	ready(create((void *)donothing, INITSTK, 4, "PRIORITY-D", 0), 0);
+	ready(create((void *)donothing, INITSTK, 5, "PRIORITY-E", 0), 0);
+	printqueuetab();
+	break;
+
+    case 'A':
 	ready(create((void *)aginginf, INITSTK, 35, "INFINITE-LOOP", 0), 0);
 	ready(create((void *)agingproof, INITSTK, 5, "AGING-PROOF", 0), 0);
+	break;
+
+    case 'P':
+	ready(create((void *)preemptcounting, INITSTK, 5, "COUNTER-A", 0), 0);
+	ready(create((void *)preemptcounting, INITSTK, 5, "COUNTER-B", 0), 0);
+	ready(create((void *)preemptcounting, INITSTK, 5, "COUNTER-C", 0), 0);
 	break;
 
     default:
