@@ -23,7 +23,7 @@ syscall ready(pid_typ pid, bool resch)
     ppcb = &proctab[pid];
     ppcb->state = PRREADY;
 
-    //enqueue(pid, readylist);
+    //Use prioritize instead of enqueue
     prioritize(pid, readylist, ppcb->priority);
 
     if (resch)

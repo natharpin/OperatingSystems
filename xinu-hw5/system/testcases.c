@@ -90,8 +90,6 @@ void testcases(void)
     kprintf("1) Test the queue order using priority scheduling\r\n");
     kprintf("A) Test aging -- if TRUE it will loop forever, otherwise the second process will get the chance to run at a certain point and will stop the loop\r\n");
     kprintf("P) Test preemption -- if enabled, each loop will not complete in one go, otherwise each loop will finish and the next loop will run\r\n");
-    kprintf("3) Test some spec, eventually\r\n");
-
 
     // TODO: Test your operating system!
 
@@ -99,6 +97,8 @@ void testcases(void)
     switch (c)
     {
     case '0':
+        //If aging and preemption are off, each process will run to completion in strictly the order of their priority
+        //If aging and preemption are on, the processes will run in a slightly different order, most likely bigargs-4-4-4-3-5-4-2-4-3-5 or something similar
         ready(create((void *)printpid, INITSTK, 2, "PRINTER-A", 1, 5), 0);
         ready(create((void *)printpid, INITSTK, 5, "PRINTER-B", 1, 5), 0);
         ready(create((void *)printpid, INITSTK, 10, "PRINTER-C", 1, 5),
@@ -111,7 +111,9 @@ void testcases(void)
         break;
 
     case '1':
-	ready(create((void *)donothing, INITSTK, 1, "PRIORITY-A", 0), 0);
+	//This prints the queue in order of its current priority, this gets messed up if preemption is on so that got turned off for the time being
+        disable();
+        ready(create((void *)donothing, INITSTK, 1, "PRIORITY-A", 0), 0);
 	ready(create((void *)donothing, INITSTK, 3, "PRIORITY-B", 0), 0);
 	ready(create((void *)donothing, INITSTK, 3, "PRIORITY-C", 0), 0);
 	ready(create((void *)donothing, INITSTK, 4, "PRIORITY-D", 0), 0);
@@ -120,12 +122,15 @@ void testcases(void)
 	break;
 
     case 'A':
-	ready(create((void *)aginginf, INITSTK, 35, "INFINITE-LOOP", 0), 0);
+	//This runs one infinite loop that will only stop when the second process runs, the second process will only ever run if aging is on
+        ready(create((void *)aginginf, INITSTK, 35, "INFINITE-LOOP", 0), 0);
 	ready(create((void *)agingproof, INITSTK, 5, "AGING-PROOF", 0), 0);
 	break;
 
     case 'P':
-	ready(create((void *)preemptcounting, INITSTK, 5, "COUNTER-A", 0), 0);
+	//If preempt is off, each process will count to ten then pass control to the next process
+        //If preempt is on, each process will attempt to count to ten but will probably be interrupted mid print for another process to start counting
+        ready(create((void *)preemptcounting, INITSTK, 5, "COUNTER-A", 0), 0);
 	ready(create((void *)preemptcounting, INITSTK, 5, "COUNTER-B", 0), 0);
 	ready(create((void *)preemptcounting, INITSTK, 5, "COUNTER-C", 0), 0);
 	break;

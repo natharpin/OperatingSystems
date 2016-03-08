@@ -27,6 +27,7 @@ syscall resched(void)
     im = disable();
 
     /* TODO: Add queue aging to the system. */
+    //Iterate through the ready list, incrementing each key by one
     if(AGING){
         head = queuehead(readylist);
         tail = queuetail(readylist);
@@ -41,7 +42,8 @@ syscall resched(void)
     if (PRCURR == oldproc->state)
     {
         oldproc->state = PRREADY;
-	prioritize(currpid, readylist, oldproc->priority);
+        //Insert the process into the list in the correct spot, using its original priority, meaning aging is reset for a process when that process is rescheduled
+        prioritize(currpid, readylist, oldproc->priority);
     }
 
     /* remove first process in ready queue */
