@@ -27,13 +27,21 @@ syscall resched(void)
     im = disable();
 
     /* TODO: Add queue aging to the system. */
-
+    if(AGING){
+        head = queuehead(readylist);
+        tail = queuetail(readylist);
+        pid_typ agingproc = head;
+        while((agingproc = queuetab[agingproc].next) != tail)
+        {
+	    queuetab[agingproc].key++;
+	}
+    }
 
     /* place current process at end of ready queue */
     if (PRCURR == oldproc->state)
     {
         oldproc->state = PRREADY;
-        enqueue(currpid, readylist);
+	prioritize(currpid, readylist, oldproc->priority);
     }
 
     /* remove first process in ready queue */

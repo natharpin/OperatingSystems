@@ -37,6 +37,7 @@ struct qentry
 {                       /**< one for each process plus two for each list */
     pid_typ next;       /**< index of next process or tail               */
     pid_typ prev;       /**< index of previous process or head           */
+    int key;		/**< key by which a queue is sorted		 */
 };
 
 extern struct qentry queuetab[];
@@ -61,6 +62,6 @@ pid_typ enqueue(pid_typ, qid_typ);
 pid_typ remove(pid_typ);
 pid_typ dequeue(qid_typ);
 qid_typ newqueue(void);
-qid_typ prioritize(pid_typ pid, qid_typ q, ulong key);
+int prioritize(pid_typ pid, qid_typ q, ulong key);
 
 #endif                          /* _QUEUE_H_ */

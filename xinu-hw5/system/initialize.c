@@ -150,10 +150,13 @@ static int sysinit(void)
     readylist = newqueue();
 
 #if RTCLOCK
+    /* clear UART interrupt */
+    disable_irq(IRQ_USB);
+    disable_irq(IRQ_PCM);
+    disable_irq(IRQ_PL011);
+    disable_irq(IRQ_SD);
     /* initialize real time clock */
     clkinit();
-    /* clear UART interrupt */
-    disable_irq(57);
 #endif
 
     return OK;

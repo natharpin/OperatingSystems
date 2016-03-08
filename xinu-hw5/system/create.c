@@ -10,7 +10,7 @@
  * Contact: nathan.arpin@marquette.edu, april.song@marquette.edu
  * This code may have been influenced by TA bot
  */
-/*TA-BOT:MAILTO nathan.arpin@marquette.edu arpil.song@marquette.edu */
+/*TA-BOT:MAILTO nathan.arpin@marquette.edu april.song@marquette.edu */
 
 #include <xinu.h>
 
@@ -22,11 +22,12 @@ void *getstk(ulong);
  * Create a new process to start running a function.
  * @param funcaddr address of function that will begin in new process
  * @param ssize    stack size in bytes
+ * @param pprior   priority of process
  * @param name     name of the process, used for debugging
  * @param nargs    number of arguments that follow
  * @return the new process id
  */
-syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
+syscall create(void *funcaddr, ulong ssize, ulong pprior, char *name, ulong nargs, ...)
 {
     ulong *saddr;               /* stack address                */
     ulong pid;                  /* stores new process id        */
@@ -57,6 +58,7 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
     strncpy(ppcb->name, name, PNMLEN); //Copies the name to the process control block using a method from string.h
     ppcb->stkbase = (ulong *)((ulong)saddr - ssize); //Finds the location of the stack base by subtracting the stack size from the address of the stack
     ppcb->stklen = ((ulong)saddr) - (ulong)ppcb->stkbase; //Finds the length of the stack by subtracting the stack address by the base of the stack
+    ppcb->priority = pprior; //Set the priority of the process
 
     /* Initialize stack with accounting block. */
     *saddr = STACKMAGIC;

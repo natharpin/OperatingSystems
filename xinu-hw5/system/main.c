@@ -18,7 +18,7 @@ process main(void)
 
     kprintf("Hello Xinu World!\r\n");
 
-    //enable();
+    enable();
     testcases();
 
     return 0;

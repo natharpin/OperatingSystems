@@ -13,6 +13,26 @@
 
 #include <xinu.h>
 
+int agingtest = 1;
+
+void aginginf(void)
+{
+    char message[] = {'I', 'n', 'f', 'i', 'n', 'i','t', 'e',
+		      ' ', 'l', 'o', 'o', 'p', '\r', '\n'};
+    int i;
+    for(i = 0; agingtest;i++)
+    {
+	kprintf("%c", message[(i % 15)]);
+	resched();
+    }
+}
+
+void agingproof(void)
+{
+    kprintf("\r\nThe operating system uses aging\r\n");
+    agingtest = 0;
+    resched();
+}
 
 void bigargs(int a, int b, int c, int d, int e, int f)
 {
@@ -42,12 +62,14 @@ void testcases(void)
     kprintf("===TEST BEGIN===\r\n");
 
     kprintf("0) Test priority scheduling\r\n");
+    kprintf("1) Test aging -- if on it will loop forever, otherwise the second process will get the chance to run at a certain point\r\n");
+    kprintf("2) Test something I guess?\r\n");
+    kprintf("3) Test some spec, eventually\r\n");
 
 
     // TODO: Test your operating system!
 
     c = kgetc();
-    kprintf("%c", c);
     switch (c)
     {
     case '0':
@@ -61,6 +83,11 @@ void testcases(void)
               ((void *)bigargs, INITSTK, 20, "BIGARGS", 6, 10, 20, 30, 40,
                50, 60), 0);
         break;
+
+    case '1':
+	ready(create((void *)aginginf, INITSTK, 35, "INFINITE-LOOP", 0), 0);
+	ready(create((void *)agingproof, INITSTK, 5, "AGING-PROOF", 0), 0);
+	break;
 
     default:
         break;

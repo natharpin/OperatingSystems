@@ -1,3 +1,15 @@
+/**
+ * @file priority.c
+ * @provides priority
+ * 
+ * COSC 3250 / COEN 4820 Assignment 5
+ *
+ * Made by Nathan Arpin and April Song
+ * Contact: nathan.arpin@marquette.edu and april.song@marquette.edu
+ */
+
+/*TA-BOT:MAILTO nathan.arpin@marquette.edu april.song@marquette.edu*/
+
 #include <xinu.h>
 
 pid_typ insert(pid_typ, qid_typ, ulong);
@@ -9,7 +21,7 @@ pid_typ insert(pid_typ, qid_typ, ulong);
  * @param key    priority of process
  * @return       the queue the process was added to
  */
-qid_typ prioritize(pid_typ pid, qid_typ q, ulong key)
+int prioritize(pid_typ pid, qid_typ q, ulong key)
 {
     if(isbadqueue(q) || isbadpid(pid))
     {
@@ -18,11 +30,6 @@ qid_typ prioritize(pid_typ pid, qid_typ q, ulong key)
 
     queuetab[pid].key = key;
     insert(pid, q, key);
-    //enqueue(pid, q);
-    //while(queuetab[queuetab[pid].prev].key < key && queuetab[queuetab[pid].prev].key != 0)
-    //{
-    //    prioritize(remove(pid), q, queuetab[pid].key);
-    //}
 
     return q;
 }
@@ -36,7 +43,7 @@ pid_typ insert(pid_typ pid, qid_typ q, ulong key)
 
     if(isempty(q))
     {
-	enqueue(pid, q);
+	return enqueue(pid, q);
     }
 
     pid_typ currentproc = queuehead(q);
@@ -51,5 +58,5 @@ pid_typ insert(pid_typ pid, qid_typ q, ulong key)
 	    return pid;
 	}
     }
-    return SYSERR;
+    return enqueue(pid, q);
 }

@@ -95,5 +95,7 @@ qid_typ newqueue(void)
     queuetab[head].prev = EMPTY;
     queuetab[tail].next = EMPTY;
     queuetab[tail].prev = head;
+    queuetab[head].key = 0;
+    queuetab[tail].key = 0;
     return (qid_typ) ((head << 16) | (tail & 0xFFFF));
 }
