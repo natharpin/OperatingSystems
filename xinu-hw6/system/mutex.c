@@ -29,7 +29,10 @@ void mutexAcquire(void)
     // TODO:
     // Implement mutex acquire using MIPS testAndSet().
     // This function will loop until it acquires the lock.
-
+    waiting[currpid] = key;
+    while(waiting[currpid] && key)
+        key = testAndSet(&lock);
+    waiting[currpid] = FALSE;
 }
 
 /**
@@ -43,4 +46,10 @@ void mutexRelease(void)
     // TODO:
     // Implement mutex release and select the next process
     //   to admit into its critical section.
+    while((j != currpid) && !waiting[j])
+        j = (j + 1) % NPROC;
+    if(j == currpid)
+        lock = FALSE;
+    else
+        waiting[j] = FALSE;
 }

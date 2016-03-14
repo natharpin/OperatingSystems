@@ -54,6 +54,14 @@ int insert_item(struct boundedbuffer *bb, buffer_item item)
     /* insert item into buffer
      * return 0 if successful, otherwise
      * return SYSERR indicating an error condition */
+    wait(bb->empty);
+    wait(bb->mutex);
+
+    bb->buffer[bb->buffertail] = item;
+    bb->buffertail = (bb->buffertail + 1) % BUFFER_SIZE;
+
+    signal(bb->mutex);
+    signal(bb->full);
     return 0;
 }
 
@@ -64,6 +72,15 @@ int remove_item(struct boundedbuffer *bb, buffer_item * item)
      * placing it in item
      * return 0 if successful, otherwise
      * return SYSERR indicating an error condition */
+    wait(bb->full);
+    wait(bb->mutex);
+
+    *item = bb->buffer[bb->bufferhead];
+    bb->buffer[bb->bufferhead] = 0;
+    bb->bufferhead = (bb->bufferhead + 1) % BUFFER_SIZE;
+
+    signal(bb->mutex);
+    signal(bb->empty);
     return 0;
 }
 
@@ -101,6 +118,20 @@ void consumer(struct boundedbuffer *bb)
 
 /* END Textbook code from Ch 5 Programming Project 3, Silberschatz p. 254 */
 
+void initbbuff(struct boundedbuffer *bbuff)
+{
+    int i;
+    for(i = 0; i < BUFFER_SIZE; i++)
+    {
+       bbuff->buffer[i] = 0;
+    }
+    bbuff->bufferhead = 0;
+    bbuff->buffertail = 0;
+    bbuff->empty = semcreate(BUFFER_SIZE);
+    bbuff->full = semcreate(0);
+    bbuff->mutex = semcreate(1);
+}
+
 /**
  * testcases - called after initialization completes to test things.
  */
@@ -121,7 +152,9 @@ void testcases(void)
     case '0':
         // TODO:
         // Initialize bbuff, and create producer and consumer processes
-
+        initbbuff(&bbuff);
+        ready(create((void *)producer, INITSTK, 5, "PRODUCER", 1, &bbuff), 0);
+        ready(create((void *)consumer, INITSTK, 5, "CONSUMER", 1, &bbuff), 0);
         break;
 
     default:
