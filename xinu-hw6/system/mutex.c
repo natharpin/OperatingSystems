@@ -27,7 +27,7 @@ void mutexAcquire(void)
 {
     bool key = TRUE;
     // TODO:
-    // Implement mutex acquire using MIPS testAndSet().
+    // Implement mutex acquire using ARM testAndSet().
     // This function will loop until it acquires the lock.
     waiting[currpid] = key;
     while(waiting[currpid] && key)
