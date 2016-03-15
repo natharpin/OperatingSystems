@@ -4,6 +4,12 @@
  *
  */
 
+/**
+ * Authors: Nathan Arpin and April Song
+ */
+
+/*TA-BOT: MAILTO nathan.arpin@marquette.edu april.song@marquette.edu */
+
 #include <xinu.h>
 
 static volatile bool waiting[NPROC];

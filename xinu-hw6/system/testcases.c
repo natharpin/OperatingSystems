@@ -56,14 +56,20 @@ int insert_item(struct boundedbuffer *bb, buffer_item item)
     /* insert item into buffer
      * return 0 if successful, otherwise
      * return SYSERR indicating an error condition */
+    
+    //If the semaphores are bad, return a system error
     if(wait(bb->empty) == SYSERR || wait(bb->mutex) == SYSERR)
         return SYSERR;
 
-    bb->buffer[bb->buffertail] = item;
-    bb->buffertail = (bb->buffertail + 1) % BUFFER_SIZE;
+    //Add the item to the head and increase the head 
+    //by one and wrap it around the queue
+    bb->buffer[bb->bufferhead] = item;
+    bb->bufferhead = (bb->bufferhead + 1) % BUFFER_SIZE;
 
+    //If the semaphores are bad, return a system error
     if(signal(bb->mutex) == SYSERR || signal(bb->full) == SYSERR)
         return SYSERR;
+    //If everything worked correctly, return a 0
     return 0;
 }
 
@@ -74,15 +80,21 @@ int remove_item(struct boundedbuffer *bb, buffer_item * item)
      * placing it in item
      * return 0 if successful, otherwise
      * return SYSERR indicating an error condition */
+    //If the semaphores are bad, return system error
     if(wait(bb->full) == SYSERR || wait(bb->mutex) == SYSERR)
         return SYSERR;
 
-    *item = bb->buffer[bb->bufferhead];
-    bb->buffer[bb->bufferhead] = 0;
-    bb->bufferhead = (bb->bufferhead + 1) % BUFFER_SIZE;
+    //Place the item to be removed in the item address
+    //Replace the item in the tail index with 0
+    //Increase tail by one and wrap it around the queue
+    *item = bb->buffer[bb->buffertail];
+    bb->buffer[bb->buffertail] = 0;
+    bb->buffertail = (bb->buffertail + 1) % BUFFER_SIZE;
 
+    //If the semaphores are bad, return system error
     if(signal(bb->mutex) == SYSERR || signal(bb->empty) == SYSERR)
         return SYSERR;
+    //If everything worked, return 0 
     return 0;
 }
 
@@ -136,6 +148,12 @@ void consumer(struct boundedbuffer *bb)
 
 /* END Textbook code from Ch 5 Programming Project 3, Silberschatz p. 254 */
 
+
+/**
+ * This method showcases deadlock. Two semaphores should be made and 
+ * passed in to two different processes in alternate order, ensuring 
+ * that each one will get one semaphore and block the other from finishing
+ */
 void deadlock(semaphore *first, semaphore *second)
 {
     enable();
@@ -147,6 +165,10 @@ void deadlock(semaphore *first, semaphore *second)
     kprintf("This line should never be run");
 }
 
+/**
+ * Tests the mutex aquire method by getting the mutex and holding it
+ * for a while, signified by printing stuff, while other processes attempt to get the mutex
+ */
 void mutexTest(void)
 {
     enable();
@@ -159,6 +181,9 @@ void mutexTest(void)
     kprintf("\r\nProcess %d has realeased the mutex", currpid);
 }
 
+/**
+ * Prints a given queue, usually for semaphores
+ */
 void printSemaphoreQueue(qid_typ q)
 {
     pid_typ current = queuehead(q);
@@ -170,6 +195,9 @@ void printSemaphoreQueue(qid_typ q)
     }
 }
 
+/**
+ * Prints the control block of a given process
+ */
 void printPCB(pid_typ pid)
 {
     pcb *ppcb = &proctab[pid];
@@ -203,6 +231,9 @@ void printPCB(pid_typ pid)
     }
 }
 
+/**
+ * Initializes the bounded buffer to to run producers and consumers correctly
+ */
 void initbbuff(struct boundedbuffer *bbuff)
 {
     int i;
@@ -217,6 +248,10 @@ void initbbuff(struct boundedbuffer *bbuff)
     bbuff->mutex = semcreate(1);
 }
 
+/**
+ * Initializes the bounded buffer incorrectly to ensure the 
+ * producers and consumers fail correctly
+ */
 void initbadbbuff(struct boundedbuffer *bbuff)
 {
     bbuff->empty = -1;
@@ -231,9 +266,6 @@ void testcases(void)
 {
     int c;
     struct boundedbuffer bbuff;
-    semaphore first = semcreate(1);
-    semaphore second = semcreate(1);
-
     kprintf("0) Test 1 producer, 1 consumer, same priority\r\n");
     kprintf("1) Test 1 producer, 1 consumer, producer with a lower priority\r\n");
     kprintf("2) Test 1 producer, 1 consumer, consumer with a lower priority\r\n");
@@ -252,6 +284,7 @@ void testcases(void)
     c = kgetc();
     switch (c)
     {
+    //Creates one producer and one consumer of equal priority
     case '0':
         // TODO:
         // Initialize bbuff, and create producer and consumer processes
@@ -260,18 +293,21 @@ void testcases(void)
         ready(create((void *)consumer, INITSTK, 5, "CONSUMER", 1, &bbuff), 0);
         break;
 
+    //Creates one producer and one consumer, the producer has lower priority
     case '1':
         initbbuff(&bbuff);
         ready(create((void *)producer, INITSTK, 1, "PRODUCER_LOWPRIOR", 1, &bbuff), 0);
         ready(create((void *)consumer, INITSTK, 5, "CONSUMER_HIGHPRIOR", 1, &bbuff), 0);
         break;
 
+    //Creates one producer and one consumer, the consumer has lower priority
     case '2':
         initbbuff(&bbuff);
         ready(create((void *)producer, INITSTK, 5, "PRODUCER_HIGHPRIOR", 1, &bbuff), 0);
         ready(create((void *)consumer, INITSTK, 1, "CONSUMER_LOWPRIOR", 1, &bbuff), 0);
         break;
     
+    //Creates two producers and one conumser, all of the same priority
     case '3':
         initbbuff(&bbuff);
         ready(create((void *)producer, INITSTK, 5, "PRODUCER_A", 1, &bbuff), 0);
@@ -279,6 +315,7 @@ void testcases(void)
         ready(create((void *)consumer, INITSTK, 5, "CONSUMER_A", 1, &bbuff), 0);
         break;
 
+    //Creates one producer and two consumers, all of the same priority
     case '4':
         initbbuff(&bbuff);
         ready(create((void *)producer, INITSTK, 5, "PRODUCER_A", 1, &bbuff), 0);
@@ -286,6 +323,7 @@ void testcases(void)
         ready(create((void *)consumer, INITSTK, 5, "CONSUMER_B", 1, &bbuff), 0);
         break;
 
+    //Creates 5 processes running mutexTest
     case '5':
         ready(create((void *)mutexTest, INITSTK, 1, "MUTEX_TEST_A", 0), 0);
         ready(create((void *)mutexTest, INITSTK, 2, "MUTEX_TEST_B", 0), 0);
@@ -294,8 +332,12 @@ void testcases(void)
         ready(create((void *)mutexTest, INITSTK, 5, "MUTEX_TEST_E", 0), 0);
         break;
     
+    //Creates two processes that deadlock, waits to make sure they are stuck, 
+    //prints out the semaphore queues and process pcbs then terminates the two processes
     case '6':
     {
+        semaphore first = semcreate(1);
+        semaphore second = semcreate(1);
         pid_typ firstproc = create((void *)deadlock, INITSTK, 5, "DEADLOCK_A", 2, &first, &second);
         pid_typ secondproc = create((void *)deadlock, INITSTK, 5, "DEADLOCK_B", 2, &second, &first);
         ready(firstproc, 0);
@@ -307,12 +349,16 @@ void testcases(void)
         }
         printSemaphoreQueue(semtab[first].queue);
         printSemaphoreQueue(semtab[second].queue);
+        printPCB(firstproc);
+        printPCB(secondproc);
         kill(firstproc);
         kill(secondproc);
         kprintf("\r\nTerminated deadlocked processes");
         break;
     }
 
+    //Creates three producers, waits for them to get stuck, prints out the 
+    //semaphore queue of empty and the pcbs then terminates the processes
     case '7':
     {
         initbbuff(&bbuff);
@@ -335,6 +381,8 @@ void testcases(void)
         break;
     }
 
+    //Creates three consumers, waits for them to get stuck, prints out the 
+    //semaphore queues and pcbs then terminates the processes
     case '8':
     {
         initbbuff(&bbuff);
@@ -357,6 +405,7 @@ void testcases(void)
         break;
     }
 
+    //Creates an invalid bounded buffer and passes it to a producer and consumer, which should fail
     case '9':
         initbadbbuff(&bbuff);
         ready(create((void *)producer, INITSTK, 5, "PRODUCER", 1, &bbuff), 0);
