@@ -16,6 +16,7 @@ extern void main(void);         /* Main program                   */
 /* Declarations of major kernel variables */
 pcb proctab[NPROC];             /* Process table                         */
 qid_typ readylist;              /* List of READY processes               */
+struct memblock freelist;       /* List of free memory blocks            */
 
 /* Active system status */
 int numproc;                    /* Number of live user processes         */
@@ -26,6 +27,7 @@ void *memheap;                  /* Bottom of heap (top of O/S stack)   */
 ulong cpuid;                    /* Processor id                        */
 
 struct platform platform;       /* Platform specific configuration     */
+
 
 /**
  * Intializes the system and becomes the null thread.
@@ -45,7 +47,6 @@ void nulluser(void)
     /* General initialization  */
     sysinit();
 
-    /* Standard Embedded Xinu processor and memory info */
     print_os_info();
 
     /* Call the main program */
@@ -66,7 +67,6 @@ void nulluser(void)
                 ;
         }
     }
-
 }
 
 static void print_os_info(void)
@@ -108,6 +108,7 @@ static void print_os_info(void)
     kprintf("\r\n");
 }
 
+
 /**
  * Intializes all Xinu data structures and devices.
  * @return OK if everything is initialized successfully
@@ -117,10 +118,19 @@ static int sysinit(void)
     int i = 0;
     pcb *ppcb = NULL;           /* process control block pointer */
     semblk *psem = NULL;        /* semaphore block pointer       */
+    memblk *pmem = NULL;        /* memory block pointer          */
 
     /* Initialize system variables */
     /* Count this NULLPROC as the first process in the system. */
     numproc = 1;
+
+    /* Initialize free memory list */
+    freelist.next = pmem = (memblk *) roundmb(memheap);
+    freelist.length =
+        (ulong)truncmb((ulong)platform.maxaddr - (ulong)memheap);
+
+    pmem->next = NULL;
+    pmem->length = freelist.length;
 
     /* Initialize process table */
     for (i = 0; i < NPROC; i++)
