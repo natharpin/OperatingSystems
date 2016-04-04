@@ -15,15 +15,24 @@
  */
 syscall	free(void *pmem)
 {
-	memblk *block;
+    memblk *block = (memblk *)((uint)pmem - sizeof(memblk));
 
-	// TODO: Perform some sanity checks to see if pmem is feasible and
-	//       could be from a malloc() request:
-	//       1) is ptr within heap region of memory?
-	//       2) is ptr + length within heap region of memory?
-	//       3) does accounting block mnext field point to itself?
-	//       4) is accounting block mlen field nonzero?
-	//       Call freemem() to put back into free list.
-	
-	return OK;
+    // TODO: Perform some sanity checks to see if pmem is feasible and
+    //       could be from a malloc() request:
+    //       1) is ptr within heap region of memory?
+    //       2) is ptr + length within heap region of memory?
+    //       3) does accounting block mnext field point to itself?
+    //       4) is accounting block mlen field nonzero?
+    //       Call freemem() to put back into free list.
+    
+    if((uint)pmem < (ulong)memheap || ((uint)pmem + block->length) > (ulong)platform.maxaddr)
+        return SYSERR;
+
+    if((uint)block != (uint)block->next)
+        return SYSERR;
+
+    if(block->length == 0)
+        return SYSERR;
+
+    return freemem((void *)block, block->length);
 }

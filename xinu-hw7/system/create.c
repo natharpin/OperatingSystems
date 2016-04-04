@@ -6,7 +6,8 @@
  */
 /* Embedded XINU, Copyright (C) 2008.  All rights reserved. */
 
-/*Made by Nathan Arpin and April Song
+/*
+ * Made by Nathan Arpin and April Song
  * Contact: nathan.arpin@marquette.edu, april.song@marquette.edu
  * This code may have been influenced by TA bot
  */
@@ -41,7 +42,7 @@ syscall create(void *funcaddr, ulong ssize, ulong pprior, char *name, ulong narg
         ssize = MINSTK;
     ssize = (ulong)(ssize + 3) & 0xFFFFFFFC;
     /* round up to even boundary    */
-    saddr = (ulong *)getstk(ssize);     /* allocate new stack and pid   */
+    saddr = (ulong *)((uint)getmem(ssize) + ssize);     /* allocate new stack and pid   */
     pid = newpid();
     /* a little error checking      */
     if ((((ulong *)SYSERR) == saddr) || (SYSERR == pid))
