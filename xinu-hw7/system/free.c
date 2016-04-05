@@ -25,7 +25,7 @@ syscall	free(void *pmem)
     //       4) is accounting block mlen field nonzero?
     //       Call freemem() to put back into free list.
     
-    if((uint)pmem < (ulong)memheap || ((uint)pmem + block->length) > (ulong)platform.maxaddr)
+    if((uint)block < (ulong)memheap || ((uint)block + block->length) > (ulong)platform.maxaddr)
         return SYSERR;
 
     if((uint)block != (uint)block->next)
@@ -33,6 +33,8 @@ syscall	free(void *pmem)
 
     if(block->length == 0)
         return SYSERR;
-
-    return freemem((void *)block, block->length);
+    mutexAcquire();
+    syscall result = freemem((void *)block, block->length);
+    mutexRelease();
+    return result;
 }

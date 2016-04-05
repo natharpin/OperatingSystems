@@ -35,6 +35,11 @@ syscall sleep(int time)
     return 0;
 }
 
+void dosomething(int a, int b, int c, int d, int e, int f, int g, int h)
+{
+    kprintf("\r\nProcess arguments are: %d, %d, %d, %d, %d, %d, %d, %d", a, b, c, d, e, f, g, h);
+}
+
 void printFreeList(void)
 {
     memblk *current = &freelist;
@@ -52,19 +57,44 @@ void printAccInfo(void *block)
     kprintf("\r\nAddress of accounting block: %d, Address of next pointer: %d, Size of memory block: %d", (uint)accinfo, accinfo->next, accinfo->length);
 }
 
+void printProcInfo(pid_typ pid)
+{
+    pcb *ppcb = &proctab[pid];
+    kprintf("\r\nProcess stack base: %d, process stack length: %d", (uint)ppcb->stkbase, ppcb->stklen);
+}
+
 /**
  * testcases - called after initialization completes to test things.
  */
 void testcases(void)
 {
     int c;
-    kprintf("===TEST BEGIN===");
+    
+    kprintf("\r\n0)Test that printing the free list works correctly");
+    kprintf("\r\n1)Test getting a small amount of memory");
+    kprintf("\r\n2)Test getting a small amount of memory and then freeing it");
+    kprintf("\r\n3)Tests simple compaction, getting two 8 byte blocks of memory, frees the first and then the second, compacting the free list back together upon the second free");
+    kprintf("\r\n4)Tests malloc with a small amount of memory");
+    kprintf("\r\n5)Tests free by getting a small amount of memory and then freeing it");
+    kprintf("\r\n6)Tests that create.c correctly utilizes getmem and kill.c correctly uses freemem");
+    kprintf("\r\n7)Attempts to allocate a large amount of small memory blocks until there is no space left");
+    kprintf("\r\n8)Attempts to malloc everything in one fell swoop");
+    kprintf("");
+
+    c = kgetc();
+
+    kprintf("\r\n===TEST BEGIN===");
 
     // TODO: Test your operating system!
 
-    c = kgetc();
     switch (c)
     {
+        case '0':
+        {
+            printFreeList();
+            break;
+        }
+
         case '1':
         {
             printFreeList();
@@ -115,6 +145,37 @@ void testcases(void)
             if(free(placeholder) == SYSERR)
                 kprintf("You dun goofed");
             printFreeList();
+            break;
+        }
+        case '6':
+        {
+            printFreeList();
+            pid_typ pid = create((void *)dosomething , INITSTK, 5, "GETMEM_TEST", 8, 1, 2, 3, 4, 5, 6, 7, 8);
+            printProcInfo(pid);
+            printFreeList();
+            kill(pid);
+            printFreeList();
+            break;
+        }
+        case '7':
+        {
+            while(1)
+            {
+                if(malloc(1024) == (void *)SYSERR)
+                {
+                    kprintf("There is no memory left");
+                    break;
+                }
+            }
+            printFreeList();
+            break;
+        }
+        case '8':
+        {
+            printFreeList();
+            printAccInfo(malloc((uint)(truncmb((freelist.next->length) - 8))));
+            printFreeList();
+            break;
         }
 
         default:

@@ -28,6 +28,8 @@ syscall kill(int pid)
     ppcb = &proctab[pid];
 
     --numproc;
+    
+    freemem(ppcb->stkbase, ppcb->stklen);
 
     switch (ppcb->state)
     {

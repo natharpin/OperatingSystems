@@ -22,7 +22,7 @@ void *malloc(uint nbytes)
     //         of request.  Return pointer to space above accounting
     //         block.
     
-    uint request = (uint)roundmb(nbytes) + sizeof(memblk);
+    uint request = (uint)roundmb(nbytes + sizeof(memblk));
     
     mutexAcquire();
     void *block = getmem(request);
@@ -36,7 +36,7 @@ void *malloc(uint nbytes)
     memblk *accinfo = block;
     accinfo->length = request;
     accinfo->next = accinfo;
-    
+
     block = (void *)((uint)block + sizeof(memblk));
 
     return block;  
