@@ -27,14 +27,16 @@ syscall	freemem(void *pmem, uint nbytes)
     memblk *current = freelist.next;
     memblk *prev = &freelist;
 
-    while((uint)pmem > (uint)current)
+    while((uint)pmem > (uint)current && (uint)current != NULL)
     {
         prev = current;
         current = current->next;
     }
 
-    if(((uint)prev != (uint)&freelist) && (((uint)pmem < ((uint)prev + prev->length)) || (uint)pmem + nbytes > (uint)current))
+    if(((uint)prev != (uint)&freelist) && (((uint)pmem < (((uint)prev) + prev->length)) || ((uint)pmem) + nbytes > (uint)current) && (uint)current != NULL)
         return SYSERR;
+
+    freelist.length += nbytes;
 
     memblk *newblk = pmem;
     newblk->length = nbytes;
@@ -42,10 +44,10 @@ syscall	freemem(void *pmem, uint nbytes)
     prev->next = newblk;
     newblk->next = current;
 
-    if((uint)newblk + newblk->length == (uint)current)
+    if(((uint)newblk) + newblk->length == (uint)current)
         merge(newblk, current);
 
-    if((uint)prev + prev->length == (uint)newblk)
+    if(((uint)prev) + prev->length == (uint)newblk)
         merge(prev, newblk);
 
     return OK;

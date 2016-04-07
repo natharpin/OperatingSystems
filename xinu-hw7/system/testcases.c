@@ -46,7 +46,7 @@ void printFreeList(void)
     int count = 0;
     while((current = current->next) != NULL)
     {
-        kprintf("\r\nSize of block %d: %d, Address of next block %d: %d", count, current->length, count, (uint)current->next);
+        kprintf("\r\nAddress of block %d: %d, Size of block %d: %d, Address of next block %d: %d", count, (uint)current, count, current->length, count, (uint)current->next);
         count++;
     }
 }
@@ -173,7 +173,10 @@ void testcases(void)
         case '8':
         {
             printFreeList();
-            printAccInfo(malloc((uint)(truncmb((freelist.next->length) - 8))));
+            void *placeholder = malloc((uint)(truncmb((freelist.next->length) - 8)));
+            printAccInfo(placeholder);
+            printFreeList();
+            free(placeholder);
             printFreeList();
             break;
         }

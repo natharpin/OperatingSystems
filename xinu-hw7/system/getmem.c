@@ -35,14 +35,17 @@ void *getmem(uint nbytes)
             {
                 if(current->length - nbytes >= 8)
                 {
-                    prev->next = (memblk *)((uint)prev->next + nbytes);
+                    prev->next = (memblk *)(((uint)prev->next) + nbytes);
                     prev->next->next = current->next;
                     prev->next->length = current->length - nbytes;
+                    freelist.length -= nbytes;
                     return (void *)current;
                 }
                 else
                 {
                     prev->next = current->next;
+                    nbytes = current->length;
+                    freelist.length -= nbytes;
                     return (void *)current;
                 }
             }

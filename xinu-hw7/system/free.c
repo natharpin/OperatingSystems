@@ -15,7 +15,7 @@
  */
 syscall	free(void *pmem)
 {
-    memblk *block = (memblk *)((uint)pmem - sizeof(memblk));
+    memblk *block = (memblk *)(((uint)pmem) - sizeof(memblk));
 
     // TODO: Perform some sanity checks to see if pmem is feasible and
     //       could be from a malloc() request:
@@ -25,7 +25,7 @@ syscall	free(void *pmem)
     //       4) is accounting block mlen field nonzero?
     //       Call freemem() to put back into free list.
     
-    if((uint)block < (ulong)memheap || ((uint)block + block->length) > (ulong)platform.maxaddr)
+    if((uint)block < (ulong)memheap || (((uint)block) + block->length) > (ulong)platform.maxaddr)
         return SYSERR;
 
     if((uint)block != (uint)block->next)

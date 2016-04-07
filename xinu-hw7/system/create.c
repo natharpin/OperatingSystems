@@ -43,11 +43,12 @@ syscall create(void *funcaddr, ulong ssize, ulong pprior, char *name, ulong narg
     ssize = (ulong)(ssize + 3) & 0xFFFFFFFC;
     /* round up to even boundary    */
     mutexAcquire();
-    uint stack = (uint)getmem(ssize);
-    if((saddr = (ulong *)(stack + ssize - 4)) == (void *)SYSERR)
-        return SYSERR;
-    /* allocate new stack and pid   */
+    void *stack = getmem(ssize);
     mutexRelease();
+    if(stack == (void *)SYSERR)
+        return SYSERR;
+    saddr = (ulong *)(((uint)stack) + ssize - 4);
+    /* allocate new stack and pid   */
     pid = newpid();
     /* a little error checking      */
     if ((((ulong *)SYSERR) == saddr) || (SYSERR == pid))
