@@ -6,6 +6,11 @@
  */
 /* Embedded XINU, Copyright (C) 2009.  All rights reserved. */
 
+/**
+ * Made by Nathan Arpin and April Song
+ */
+/*TA-BOT:MAILTO nathan.arpin@marquette.edu april.song@marquette.edu */
+
 #include <xinu.h>
 
 /**
@@ -25,14 +30,23 @@ syscall	free(void *pmem)
     //       4) is accounting block mlen field nonzero?
     //       Call freemem() to put back into free list.
     
+    //If the address of the block is greater 
+    //than the total amount of memory or less 
+    //than the bottom of the heap size, throw a SYSERR
     if((uint)block < (ulong)memheap || (((uint)block) + block->length) > (ulong)platform.maxaddr)
         return SYSERR;
 
+    //If the block's next pointer does not point to 
+    //itself, the program did not create this memory 
+    //block and should not free it out of hand
     if((uint)block != (uint)block->next)
         return SYSERR;
-
-    if(block->length == 0)
+    
+    //If the memory block's length is garbage 
+    //or not possible, throw a SYSERR
+    if(block->length <= 0)
         return SYSERR;
+    //Call freemem on the block in a controlled environment
     mutexAcquire();
     syscall result = freemem((void *)block, block->length);
     mutexRelease();

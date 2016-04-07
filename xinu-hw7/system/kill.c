@@ -5,6 +5,10 @@
  * COSC 3250/ COEN 4820 Assignment 4
  */
 
+/*Edited by Nathan Arpin and April Song
+ *
+ */
+
 /* Embedded XINU, Copyright (C) 2008.  All rights reserved. */
 
 #include <xinu.h>
@@ -28,7 +32,8 @@ syscall kill(int pid)
     ppcb = &proctab[pid];
 
     --numproc;
-    
+
+    //Frees the memory used by the process
     freemem(ppcb->stkbase, ppcb->stklen);
 
     switch (ppcb->state)

@@ -35,11 +35,13 @@ syscall sleep(int time)
     return 0;
 }
 
+//Simple process to give create something to do
 void dosomething(int a, int b, int c, int d, int e, int f, int g, int h)
 {
     kprintf("\r\nProcess arguments are: %d, %d, %d, %d, %d, %d, %d, %d", a, b, c, d, e, f, g, h);
 }
 
+//Prints the list of free memory
 void printFreeList(void)
 {
     memblk *current = &freelist;
@@ -51,12 +53,16 @@ void printFreeList(void)
     }
 }
 
+//Prints the accounting information of 
+//a memory block retrieved from malloc
 void printAccInfo(void *block)
 {
     memblk *accinfo = (memblk *)((uint)block - sizeof(memblk));
     kprintf("\r\nAddress of accounting block: %d, Address of next pointer: %d, Size of memory block: %d", (uint)accinfo, accinfo->next, accinfo->length);
 }
 
+//Prints the information about a 
+//process in relation to its memory
 void printProcInfo(pid_typ pid)
 {
     pcb *ppcb = &proctab[pid];
@@ -79,7 +85,6 @@ void testcases(void)
     kprintf("\r\n6)Tests that create.c correctly utilizes getmem and kill.c correctly uses freemem");
     kprintf("\r\n7)Attempts to allocate a large amount of small memory blocks until there is no space left");
     kprintf("\r\n8)Attempts to malloc everything in one fell swoop");
-    kprintf("");
 
     c = kgetc();
 

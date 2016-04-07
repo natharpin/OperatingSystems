@@ -43,10 +43,13 @@ syscall create(void *funcaddr, ulong ssize, ulong pprior, char *name, ulong narg
     ssize = (ulong)(ssize + 3) & 0xFFFFFFFC;
     /* round up to even boundary    */
     mutexAcquire();
+    //Gets a pointer to the bottom of the stack in memory
     void *stack = getmem(ssize);
     mutexRelease();
+    //Checks to make sure that getmem succeeded
     if(stack == (void *)SYSERR)
         return SYSERR;
+    //Gives saddr the top of the stack in memory
     saddr = (ulong *)(((uint)stack) + ssize - 4);
     /* allocate new stack and pid   */
     pid = newpid();
@@ -62,10 +65,14 @@ syscall create(void *funcaddr, ulong ssize, ulong pprior, char *name, ulong narg
     ppcb->state = PRSUSP;
 
     // TODO: Setup PCB entry for new process.
-    strncpy(ppcb->name, name, PNMLEN); //Copies the name to the process control block using a method from string.h
-    ppcb->stkbase = (ulong *)stack;
+    //Copies the name to the process control block using a method from string.h
+    strncpy(ppcb->name, name, PNMLEN);
+    //Sets the stack base to the bottom of the stack in memory 
+    ppcb->stkbase = (ulong *)stack; 
+    //Sets the stack length to the size requested from getmem
     ppcb->stklen = ssize;
-    ppcb->priority = pprior; //Set the priority of the process
+    //Set the priority of the process
+    ppcb->priority = pprior; 
 
     /* Initialize stack with accounting block. */
     *saddr = STACKMAGIC;
