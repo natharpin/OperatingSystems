@@ -53,7 +53,7 @@ devcall fileDelete(int fd)
 
     signal(supertab->sb_dirlock);
 
-    if(SYSERR == sbFreeBlock(supertab, fd))
+    if(SYSERR == sbFreeBlock(supertab, filetab[fd].fn_blocknum))
     {
         return SYSERR;
     }

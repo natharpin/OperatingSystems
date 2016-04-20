@@ -35,7 +35,7 @@ devcall sbFreeBlock(struct superblock *psuper, int block)
     struct dentry *phw;
     int diskfd;
 
-    if(NULL == psuper || block < 0 || block > 256)
+    if(NULL == psuper || block < 0 || block > 255)
     {
         return SYSERR;
     }
@@ -45,11 +45,6 @@ devcall sbFreeBlock(struct superblock *psuper, int block)
         return SYSERR;
     }
     diskfd = phw - devtab;
-
-    if(filetab[block].fn_state == FILE_FREE)
-    {
-        return SYSERR;
-    }
 
     current = psuper->sb_freelst;
 

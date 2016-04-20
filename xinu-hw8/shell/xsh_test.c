@@ -15,21 +15,5 @@
 command xsh_test(int nargs, char *args[])
 {
     //TODO: Test your O/S.
-    int c;
-
-    c = kgetc();
-
-    switch(c)
-    {
-        case '0':
-        {
-            printf("Case 0");
-            break;
-        }
-        default:
-        {
-            break;
-        }
-    }
     return OK;
 }
