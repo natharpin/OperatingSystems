@@ -24,6 +24,11 @@ devcall fileDelete(int fd)
     //  Use the superblock's locks to guarantee mutually exclusive
     //  access to the directory index.
 
+    if(fd < 0 || fd > 255)
+    {
+        return SYSERR;
+    }
+
     if((NULL == supertab) || (NULL == filetab) || (filetab[fd].fn_state == FILE_FREE))
     {
         return SYSERR;

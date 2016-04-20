@@ -35,7 +35,7 @@ devcall sbFreeBlock(struct superblock *psuper, int block)
     struct dentry *phw;
     int diskfd;
 
-    if(NULL == psuper || isbadfd(block))
+    if(NULL == psuper || block < 0 || block > 256)
     {
         return SYSERR;
     }
