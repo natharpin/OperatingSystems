@@ -10,6 +10,7 @@
 int icmpPrep(void *buf, ushort id, char *dst);
 int icmpPrint(void *buf, int length);
 void setupEther(struct ethergram *, char *, ushort, ushort);
+void printResults(char *, int, int, int);
 
 /**
  * Provides a client that sends out a series of ping requests.
@@ -48,18 +49,18 @@ int echoRequest(char *dst)
     while(attempts < 20)
     {
 	attempts++;
+	seq++;
 
-	bzero(request, PKTSZ);
+	bzero(request, REQUEST_PKTSZ);
 	bzero(ether, PKTSZ);
 	setupEther(request, dst, id, seq);
-	ippkt = (struct ipv4gram *)request->data;
-	icmp = (struct icmpgram *)ippkt->data;
 
-	write(ETH0, (void *)request, PKTSZ);
+	write(ETH0, (void *)request, REQUEST_PKTSZ);
 	sleep(1000);
 	
-	int i, found = 0;
-	while(/*i < MAX_READ_ATTEMPTS &&*/ !found)
+	int i = 0;
+	int found = 0;
+	while(i < MAX_READ_ATTEMPTS && found == 0)
 	{
 	    while ((length = read(ETH0, (void *)ether, PKTSZ)) == 0)
                 ;
@@ -81,25 +82,20 @@ int echoRequest(char *dst)
 	    if(ntohs(ether->type) == ETYPE_IPv4)
 	    {
 	        struct ipv4gram *ipgram = (struct ipv4gram *)ether->data;
-		printf("\r\nether->type == ETYPE_IPv4");
 	        if(ipgram->protocol == IP_ICMP)
 	        {
-		    printf("ipgram->protocol == IP_ICMP");
 		    struct icmpgram *icmpRep = (struct icmpgram *)ipgram->data;
-		    if(icmp->type == ICMP_REPLY)
+		    if(icmpRep->type == ICMP_REPLY)
 		    {
-			printf("icmp->type == ICMP_REPLY");
 		        totalsent++;
-			found++;
-		        icmpPrint((void *)ippkt, ntohs(ippkt->length));
+			found = 1;
+		        icmpPrint((void *)ipgram, ntohs(ipgram->length));
 		    }
 	        }
     	    }
 	}
-	if(!found) dropped++;
-	seq++;
+	if(found == 0) dropped++;
     }
-
     return OK;
 }
 
