@@ -41,7 +41,7 @@ process echoReply(void)
 	    if(ntohs(argram->oper) == ARP_REQUEST)
 	    {
 		arp_reply(ether->data);
-		write(ETH0, (void *)packet, PKTSZ);
+		write(ETH0, (void *)packet, length);
 	    }
 	}
 	if(ntohs(ether->type) == ETYPE_IPv4)
@@ -55,9 +55,9 @@ process echoReply(void)
 		    ether_swap(ether);
 		    ipv4_swap(ipgram, ntohs(ipgram->length));
 		    icmp->cksum = 0;
-		    icmp->cksum = checksum(icmp ,(PKTSZ - ETHER_SIZE - IPv4_SIZE));
+		    icmp->cksum = checksum(icmp ,(length - ETHER_SIZE - IPv4_SIZE));
 		    icmp->type = ICMP_REPLY;
-		    write(ETH0, (void *)packet, PKTSZ);
+		    write(ETH0, (void *)packet, length);
 		}
 	    }
 	}

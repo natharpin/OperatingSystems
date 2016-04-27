@@ -49,7 +49,6 @@ int echoRequest(char *dst)
     while(attempts < 20)
     {
 	attempts++;
-	seq++;
 
 	bzero(request, REQUEST_PKTSZ);
 	bzero(ether, PKTSZ);
@@ -72,7 +71,7 @@ int echoRequest(char *dst)
 	        if(ntohs(argram->oper) == ARP_REQUEST)
 	        {
 		    arp_reply(ether->data);
-		    write(ETH0, (void *)receivepkt, PKTSZ);
+		    write(ETH0, (void *)receivepkt, length);
 	        }
 	    }
 	    else
@@ -95,7 +94,9 @@ int echoRequest(char *dst)
     	    }
 	}
 	if(found == 0) dropped++;
+        seq++;
     }
+    printf("Dropped %d packets of all %d requests sent\n", dropped, attempts);
     return OK;
 }
 
@@ -111,7 +112,7 @@ void setupEther(struct ethergram *request, char *dst, ushort id, ushort seq)
     icmp->id = 0;
     icmp->cksum = 0;
     icmp->seq = htons(seq);
-    icmp->cksum = checksum(icmp ,(PKTSZ - ETHER_SIZE - IPv4_SIZE));
+    icmp->cksum = checksum(icmp ,(REQUEST_PKTSZ - ETHER_SIZE - IPv4_SIZE));
 }
 /**
  * Shell command (ping) sends echo requests to provided IP.
