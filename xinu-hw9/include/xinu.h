@@ -32,6 +32,7 @@
 #include <bcmswitch.h>
 #include <ether.h>
 #include <network.h>
+#include <netutils.h>
 #include <vlan.h>
 
 #include <uart.h>

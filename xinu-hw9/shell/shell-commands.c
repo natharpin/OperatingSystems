@@ -18,6 +18,8 @@ struct centry commandtab[] = {
     {"help", FALSE, xsh_help},
     {"kill", TRUE, xsh_kill},
     {"memstat", FALSE, xsh_memstat},
+    {"ping", FALSE, xsh_ping},
+    {"pingserver", FALSE, xsh_pingserver},
     {"ps", FALSE, xsh_ps},
     {"test", FALSE, xsh_test},
     {"?", FALSE, xsh_help}

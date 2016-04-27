@@ -57,6 +57,8 @@ command xsh_fish(int, char *[]);
 command xsh_help(int, char *[]);
 command xsh_kill(int, char *[]);
 command xsh_memstat(int, char *[]);
+command xsh_ping(ushort, char *[]);
+command xsh_pingserver(ushort, char *[]);
 command xsh_ps(int, char *[]);
 command xsh_test(int, char *[]);
 
