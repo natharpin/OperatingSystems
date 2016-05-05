@@ -5,7 +5,6 @@
 #include <chat.h>
 
 #define REJECT "Error: There are too many clients on the server"
-#define NAME_MAX 64
 
 void sendtoAll(int, char *, int, int, char *);
 struct client * getFromName(char *);
@@ -66,7 +65,7 @@ int addClient(struct sockaddr_in *clientaddr, char *clienthost, int len, int soc
     newclient->prev = current;
     current->next = newclient;
     
-    printf("Added new client : %s\n", clienthost);
+    printf("Added new client : %s : %s\n", clienthost, newclient->name);
     
     char restofmessage[22] = " has joined the chat\n\0";
     char welcome[strlen(newclient->name) + strlen(restofmessage)];

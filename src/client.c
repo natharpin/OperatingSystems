@@ -29,9 +29,9 @@ int main(int argc, char *argv[])
     struct sockaddr_in my_addr, their_addr;
     char buf[BUF_SIZE];
 
-    if(argc != 3)
+    if(argc != 4)
     {
-        fprintf(stderr, "Usage: %s, IP address, portnum \n", argv[0]);
+        fprintf(stderr, "Usage: %s <IP address> <portnum> <username>\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
@@ -54,14 +54,33 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
+    printf("The username is %s\n", argv[3]);
+    
+    char username[NAME_MAX];
+    strncpy(username, argv[3], NAME_MAX);
+    
+    memset(buf, '\0', BUF_SIZE);
+    strcpy(buf, username);
+    strcat(buf, "\n");
+    if(sendto(sockfd, buf, strlen(buf), 0, (struct sockaddr *)&their_addr, their_addr_len) != strlen(buf))
+    {
+	    fprintf(stderr, "Error sending username");
+        exit(EXIT_FAILURE);
+    }
+    
+
     while(is_open)
     {
         memset(buf, '\0', BUF_SIZE);
         fgets(buf, BUF_SIZE, stdin);
 	    printf(CLEAR);
         if(check(buf))
-        {
-            sendto(sockfd, buf, strlen(buf), 0, (struct sockaddr *)&their_addr, their_addr_len);
+        {    
+            if(sendto(sockfd, buf, strlen(buf), 0, (struct sockaddr *)&their_addr, their_addr_len) != strlen(buf))
+            {
+	            fprintf(stderr, "Error sending message");
+                exit(EXIT_FAILURE);
+            }
         }
     }
 
