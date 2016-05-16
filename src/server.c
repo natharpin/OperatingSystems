@@ -1,12 +1,22 @@
-/* Simple echo server demonstrating listening to, reading from,
- * and writing to a network socket. */
-/* DWB */
+/**
+ * Simple chat server
+ * Extra features: each client gets a color,
+ *                 a client may exit without shutting down the whole server,
+ *                 and there can be more than five clients at once
+ *
+ * Created by Nathan Arpin and April Song
+ * Used Dr. Brylow's simple server example as a basis
+ *
+ * Contact: nathan.arpin@marquette.edu or april.song@marquette.edu
+ */
+
+
 
 #include <chat.h>
 
 #define REJECT "Error: There are too many clients on the server"
 
-void sendtoAll(int, char *, int, int, char *);
+void sendtoAll(int, char *, int, int, char *, char *);
 struct client * getFromName(char *);
 int checkDst(char *);
 void sendtoOne(int, char *, int, int, char *, struct client *);
@@ -18,6 +28,7 @@ struct client
 {
     char name[NAME_MAX];
     char host[NAME_MAX];
+    char color[16];
     int their_addr_len;
     struct sockaddr_in *their_addr;
     struct client *next;
@@ -40,6 +51,13 @@ int lower(int first, int sec)
         return sec;
 }
 
+int color = 0;
+char * getColor()
+{
+    color = (color + 1) % 6;
+    return colorlist[color];
+}
+
 int addClient(struct sockaddr_in *clientaddr, char *clienthost, int len, int sockfd, char *username)
 {
     if(client_total >= MAX_CLIENT)
@@ -58,6 +76,7 @@ int addClient(struct sockaddr_in *clientaddr, char *clienthost, int len, int soc
     memcpy(newclient->name, username, lower(NAME_MAX, strlen(username) - 1));
     memset(username, '\0', BUF_SIZE);
     strcpy(newclient->host, clienthost);
+    strcpy(newclient->color, getColor());
     newclient->their_addr_len = len;
     newclient->their_addr = malloc(sizeof(struct sockaddr_in));
     cpysa(newclient->their_addr, clientaddr);
@@ -67,11 +86,16 @@ int addClient(struct sockaddr_in *clientaddr, char *clienthost, int len, int soc
     
     printf("Added new client : %s : %s\n", clienthost, newclient->name);
     
+    if(sendto(sockfd, TITLE, strlen(TITLE), 0, (struct sockaddr *)newclient->their_addr, newclient->their_addr_len) != strlen(TITLE))
+    {
+        fprintf(stderr, "There was an error sending the title");
+    }
+    
     char restofmessage[22] = " has joined the chat\n\0";
     char welcome[strlen(newclient->name) + strlen(restofmessage)];
     strcpy(welcome, newclient->name);
     strcat(welcome, restofmessage);
-    sendtoAll(sockfd, welcome, strlen(welcome), 0, "Server");
+    sendtoAll(sockfd, welcome, strlen(welcome), 0, "Server", DEFAULT);
 
     return TRUE;
 }
@@ -117,7 +141,7 @@ void exitServer(int sockfd)
 {
     server_on = 0;
     char goodbye[29] = "The server is disconnecting\n\0";
-    sendtoAll(sockfd, goodbye, strlen(goodbye), 0, "Server");
+    sendtoAll(sockfd, goodbye, strlen(goodbye), 0, "Server", DEFAULT);
 }
 
 void closeClient(char *host, int sockfd)
@@ -128,7 +152,7 @@ void closeClient(char *host, int sockfd)
     memset(messege, '\0', BUF_SIZE);
     strncpy(messege, current->name, strlen(current->name));
     strcat(messege, goodbye);
-    sendtoAll(sockfd, messege, strlen(messege), 0, "Server");
+    sendtoAll(sockfd, messege, strlen(messege), 0, "Server", DEFAULT);
     client_total--;
     current->prev->next = current->next;
     if(current->next != NULL)
@@ -172,13 +196,13 @@ int main (int argc, char *argv[])
     {
       printf ("Server listening on port %d\n", myport);
     }
-
+    
     their_addr_len = sizeof (struct sockaddr_in);
 
     while(server_on)
     {
         memset(buf, '\0', BUF_SIZE);
-        nread = recvfrom (sockfd, buf, BUF_SIZE, 0, (struct sockaddr *) &their_addr, &their_addr_len);
+        nread = recvfrom (sockfd, buf, BUF_SIZE, 0, (struct sockaddr *)&their_addr, &their_addr_len);
 
         char host[NI_MAXHOST], service[NI_MAXSERV];
         int result;
@@ -215,7 +239,7 @@ int main (int argc, char *argv[])
             {
                 case 0:
                 {
-                    sendtoAll(sockfd, buf, nread, 0, (get(host))->name);
+                    sendtoAll(sockfd, buf, nread, 0, (get(host))->name, (get(host))->color);
                     break;
                 }
                 case 2:
@@ -247,7 +271,7 @@ int checkDst(char *buf)
         return 0;
 }
 
-void sendtoAll(int sockfd, char *buf, int nread, int flags, char *name)
+void sendtoAll(int sockfd, char *buf, int nread, int flags, char *name, char *color)
 {
     struct client *current = &head;
     while(current->next != NULL)
@@ -260,9 +284,13 @@ void sendtoAll(int sockfd, char *buf, int nread, int flags, char *name)
         
 	    current = current->next;
         char temp[BUF_SIZE];
-        strcpy(temp, namebuf);
+        strcpy(temp, DIM);
+        strcat(temp, color);
+        strcat(temp, namebuf);
         strcat(temp, ": ");
-        strcat(temp, bufbuffer);
+        strcat(temp, RESETDIM);
+        strncat(temp, bufbuffer, strlen(bufbuffer) - 1);
+        strcat(temp, RESETALL "\n");
         if (sendto (sockfd, temp, strlen(temp), flags, (struct sockaddr *) current->their_addr, current->their_addr_len) != strlen(temp))
         {
             fprintf (stderr, "Error sending response\n");

@@ -53,8 +53,6 @@ int main(int argc, char *argv[])
 	    fprintf(stderr, "Error creating thread");
         exit(EXIT_FAILURE);
     }
-
-    printf("The username is %s\n", argv[3]);
     
     char username[NAME_MAX];
     strncpy(username, argv[3], NAME_MAX);
@@ -110,6 +108,8 @@ int check(char *buf)
     }
     
     if(strcmp(buf, "close\n") == 0)
+        closeThis();
+    if(strcmp(buf, "exit\n") == 0)
         closeThis();
     
     return 1;
